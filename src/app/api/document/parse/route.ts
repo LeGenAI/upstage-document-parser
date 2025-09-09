@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface TableData {
+  id: string;
+  html: string;
+  text: string;
+  bbox: any;
+  page: number;
+  parsedData?: string[][];
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -55,8 +64,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function extractTables(layoutData: any, instruction: string): any[] {
-  const tables: any[] = [];
+function extractTables(layoutData: any, instruction: string): TableData[] {
+  const tables: TableData[] = [];
   
   // Check if elements exist in the response
   if (!layoutData.elements) {
@@ -67,7 +76,7 @@ function extractTables(layoutData: any, instruction: string): any[] {
   for (const element of layoutData.elements) {
     if (element.category === 'table') {
       // Extract table HTML if available
-      const tableData = {
+      const tableData: TableData = {
         id: element.id || Math.random().toString(36).substr(2, 9),
         html: element.html || '',
         text: element.text || '',
@@ -89,9 +98,9 @@ function extractTables(layoutData: any, instruction: string): any[] {
   return tables;
 }
 
-function parseHTMLTable(html: string): any[][] {
+function parseHTMLTable(html: string): string[][] {
   // Simple HTML table parser to extract cell data
-  const rows: any[][] = [];
+  const rows: string[][] = [];
   
   // Remove unnecessary whitespace and newlines
   const cleanHtml = html.replace(/\n/g, '').replace(/\s+/g, ' ');
@@ -121,7 +130,7 @@ function parseHTMLTable(html: string): any[][] {
   return rows;
 }
 
-function postProcessTableData(data: any[][], instruction: string): any[][] {
+function postProcessTableData(data: string[][], instruction: string): string[][] {
   const processedData = [...data];
   
   // Fix ditto marks (〃, '', ", ″, 々)
